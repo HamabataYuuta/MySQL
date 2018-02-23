@@ -30,11 +30,11 @@ Cardinalityは、ユニークな値や文字を数えて表示されている。
 - EXPLAINコマンドとは、SELECT句で使用されるテーブルに関する情報を返す。使用する際には、SELECT文の前にEXPLAINを記述する。 
   
   
-`EXPLAIN SELECT * FROM film WHERE film_id =1`  
+`EXPLAIN SELECT * FROM film WHERE title ='WORST BANGER';`  
 
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:------------:|
-| 1           |  SIMPLE       | film         | const        | PRIMARY         | PRIMARY         | 2         | const         | 1         |
+| 1           |  SIMPLE       | film         | ref       | idx_title     | idex_title         | 767         | const         | 1         |Using index condition
 
   
 - id  
@@ -47,8 +47,9 @@ SIMPLEという表示は、一つのSELECT文という意味で、サブクエ�
 - type  
 結合の型。対象のテーブルに対してどのようにアクセスをするのかを示す。  
 INDEXが使用されているかどうかを確認することができる。
-constは主キーによるアクセス、INDEXによるアクセスを意味しているので、処理が早い。
-- possible_keys  
+constは主キーによるアクセス、INDEXによるアクセスを意味しているので、処理が早い。  
+refはユニークでないINDEXを使って検索したという意味である。  
+- possible_keys  
 選択可能なインデックス。
 - key   
 実際にSELECT句の中で選択したキー。
@@ -61,4 +62,5 @@ constは主キーによるアクセス、INDEXによるアクセスを意味し�
 - rows  
 テーブルから調査された行数。  
 - extra  
-その他の追加情報。
+その他の追加情報。  
+Using index conditionはクエリがINDEXだけでデータを抽出できたという意味である。
