@@ -89,9 +89,9 @@ refはユニークでないINDEXを使って検索したという意味である
 その他の追加情報。  
 Using index conditionはクエリがINDEXだけでデータを抽出できたという意味である。  
 ### サブクエリにより複数行のテーブル情報が返ってくる例  
-`EXPLAIN SELECT film.title,
+`EXPLAIN SELECT film.title,  
 	(SELECT name FROM language WHERE language_id = film.language_id)
-FROM film
+FROM film  
 WHERE film_id < 100;`  
 
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
