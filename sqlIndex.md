@@ -112,6 +112,6 @@ Using index conditionはクエリがINDEXだけでデータを抽出できたと
 
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
-| 1  |  SIMPLE       | film  | index_marge |PRIMARY,idx_title    | idx_title,PRIMARY | 767,2         | null         | 1         |   Using intersect(idx_title,PRIMARY);Using Where   |  
+| 1  |  SIMPLE       | film  | range |PRIMARY,idx_title    | PRIMARY | 2         | null         | 98       |   Using Where   |  
 
 - Cardinalityが高い主キーとINDEXが作成されているCardinalityが高いfilmのタイトルから抽出した結果をマージしているため、INDEXを利用した検索として効率が良い。
