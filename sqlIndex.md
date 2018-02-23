@@ -85,11 +85,11 @@ Using index conditionはクエリがINDEXだけでデータを抽出できたと
 - typeがALLとなっており、テーブル全てを読み込んでいるためインデックスが利用されていないことを示している。  
 
 ### インデックス全体を読み込んでいる例
-`EXPLAIN SELECT language_id FROM film;`  
+`EXPLAIN SELECT title FROM film;`  
 
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
-| 1  |  SIMPLE       | film  | index |null          | idx_fk_language_id | 1         | null         | 953          |   Using index          |  
+| 1  |  SIMPLE       | film  | index |null          | idx_title| 767         | null         | 953          |   Using index          |  
 
 - typeがindexとなっており、インデックス全体を読み込んでいるため処理が遅い。  
 
