@@ -34,9 +34,9 @@ Cardinalityは、ユニークな値や文字を数えて表示されている。
 
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:------------:|
-| 1           |  SIMPLE       | film         | ref       | idx_title     | idex_title         | 767         | const         | 1         |Using index condition
+| 1  |  SIMPLE       | film  | ref   | idx_title    | idex_title   | 767          | const        | 1            |Using index condition
 
-  
+  
 - id  
 SELECT句の識別子。  
 - select_type  
@@ -49,7 +49,7 @@ SIMPLEという表示は、一つのSELECT文という意味で、サブクエ�
 INDEXが使用されているかどうかを確認することができる。
 constは主キーによるアクセス、INDEXによるアクセスを意味しているので、処理が早い。  
 refはユニークでないINDEXを使って検索したという意味である。  
-- possible_keys  
+- possible_keys  
 選択可能なインデックス。
 - key   
 実際にSELECT句の中で選択したキー。
