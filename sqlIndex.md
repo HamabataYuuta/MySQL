@@ -5,6 +5,7 @@
 テーブルから検索するのではなく、インデックスを検索することで大規模なデータを高速に抽出することができる。
 例えば、大量の名前が無造作に入っているカラムを対象にあいうえお順で並び替えたインデックスを作成しておけば、抽出が早くなる。
 - データの量が少ないカラムのインデックスを作成しても効果が薄い。
+- 主キーはそのテーブル内での重複がないため、自動的にインデックスが作成される。
 
 ### インデックス情報の確認
 - SHOW INDEX構文を使用する。  
@@ -23,6 +24,14 @@ Cardinalityは、ユニークな値や文字を数えて表示されている。
 ### インデックスの削除  
 - DROP INDEX構文を使用する。  
 `DROP INDEX インデックス名 ON テーブル名`
+
+### 複合インデックスの作成
+- 複合インデックスとは、1つのテーブルの複数のカラムにINDEXを作成することである。 
+絞込みの際に複数の列をキーとして抽出する場合に有効である。  
+`CREATE INDEX インデックス名 ON テーブル名(カラム名,カラム名)`  
+
+
+
 
 
 ### インデックスが利用されているかの調査(クエリの実行計画の調査)
@@ -63,4 +72,32 @@ refはユニークでないINDEXを使って検索したという意味である
 テーブルから調査された行数。  
 - extra  
 その他の追加情報。  
-Using index conditionはクエリがINDEXだけでデータを抽出できたという意味である。
+Using index conditionはクエリがINDEXだけでデータを抽出できたという意味である。  
+
+
+### インデックスでの検索が効いていないパターンの例   
+`EXPLAIN SELECT * FROM film;`  
+
+| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
+| 1  |  SIMPLE       | film  | ALL   |null          | null         | null         | null         | 953          |             |
+
+- typeがALLとなっており、テーブル全てを読み込んでいるためインデックスが利用されていないことを示している。  
+
+### インデックス全体を読み込んでいる例
+`EXPLAIN SELECT language_id FROM film;`  
+
+| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
+| 1  |  SIMPLE       | film  | index |null          | idx_fk_language_id | 1         | null         | 953          |   Using index          |  
+
+- typeがindexとなっており、インデックス全体を読み込んでいるため処理が遅い。  
+
+### インデックスでの検索において効率の良い例  
+`EXPLAIN SELECT * FROM film WHERE film_id < 100 AND title = 'A%';`  
+
+| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
+| 1  |  SIMPLE       | film  | index_marge |PRIMARY,idx_title    | idx_title,PRIMARY | 767,2         | null         | 1         |   Using intersect(idx_title,PRIMARY);Using Where   |  
+
+- Cardinalityが高い主キーとINDEXが作成されているCardinalityが高いfilmのタイトルから抽出した結果をマージしているため、INDEXを利用した検索として効率が良い。
