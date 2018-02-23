@@ -48,9 +48,10 @@ SHOW INDEX構文は、テーブル名に対応したINDEXの情報のフィー�
 
 
 
-### インデックスが利用されているかの調査(クエリの実行計画の調査)
-- EXPLAINコマンドを使用する。  
-- EXPLAINコマンドとは、SELECT句で使用されるテーブルに関する情報を返す。使用する際には、SELECT文の前にEXPLAINを記述する。 
+### インデックスが利用されているかの調査(クエリの実行計画の調査)  
+- EXPLAINコマンドを使用する。  
+- EXPLAINコマンドとは、SELECT句で使用されるテーブルに関する情報を返す。使用する際には、SELECT文の前にEXPLAINを記述する。(利用しているMySQLサーバはversion5.5.52)  
+- MySQL5.6.3からはSELECT文以外のDELETE、INSERT、REPLACE、UPDATEで使用可能である。
   
   
 `EXPLAIN SELECT * FROM film WHERE title ='WORST BANGER';`  
@@ -87,7 +88,19 @@ refはユニークでないINDEXを使って検索したという意味である
 - extra  
 その他の追加情報。  
 Using index conditionはクエリがINDEXだけでデータを抽出できたという意味である。  
+### サブクエリにより複数行のテーブル情報が返ってくる例  
+`EXPLAIN SELECT film.title,
+	(SELECT name FROM language WHERE language_id = film.language_id)
+FROM film
+WHERE film_id < 100;`  
 
+| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
+| 1  | PRIMARY      | film  | range   |PRYMARY       | PRYMARY         |   2       | null         | 98      |     Using where       |
+| 2  | DEPENDENT SUBQUERY  | language  | eq_ref   | PRYMARY    | PRYMARY    |   1      | astrskdb.film.language_id | 1     |          |
+
+##### サブクエリとして呼び出したlanguageテーブル
+- select_typeがDEPENDENT SUBQUERYとなっている。これは依存性のあるサブクエリを1度だけ呼び出したという意味である。
 
 ### インデックスでの検索が効いていないパターンの例   
 `EXPLAIN SELECT * FROM film;`  
