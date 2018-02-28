@@ -114,23 +114,8 @@ WHERE first_name LIKE 'A%';
 
 - typeがALLとなっており、テーブル全てを読み込んでいるためインデックスが利用されていないことを示している。  
 ### インデックスでの検索ができていない条件つきのクエリ  
-```SQL
-IN SELECT * FROM inventory WHERE film_id < 500; 
-```
-| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
-|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
-| 1  |  SIMPLE       | inventory  | ALL   |   idx_fk_film_id      | null         | null         | null         | 5007          |          Using where   |
 
-- 複合インデックスとして登録されたインデックスを使用する際には、(カラム1,カラム2)で登録されているものならば、カラム1からの条件検索か、カラム1、カラム2と条件を順番に絞り込んだクエリでないとインデックスは機能しない。  そのため、カラム2のみの絞込みではインデックスは利用されない。  
-### インデックスでの検索ができていない条件つきのクエリ  
-```SQL
-IN SELECT * FROM inventory WHERE film_id < 500; 
-```
-| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
-|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
-| 1  |  SIMPLE       | inventory  | ALL   |   idx_fk_film_id      | null         | null         | null         | 5007          |          Using where   |
-
-- 複合インデックスとして登録されたインデックスを使用する際には、(カラム1,カラム2)で登録されているものならば、カラム1からの条件検索か、カラム1、カラム2と条件を順番に絞り込んだクエリでないとインデックスは機能しない。  そのため、カラム2のみの絞込みではインデックスは利用されない。  
+  
 ### インデックスでの検索において効率の良い例  
 ```SQL
 EXPLAIN SELECT * FROM film WHERE film_id < 100 AND title = 'A%';
