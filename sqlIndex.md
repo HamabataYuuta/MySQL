@@ -10,7 +10,9 @@
 
 ### インデックス情報の確認
 - SHOW INDEX構文を使用する。  
-`SHOW INDEX FROM テーブル名`    
+```SQL
+SHOW INDEX FROM テーブル名
+```    
 
 SHOW INDEX構文は、テーブル名に対応したINDEXの情報のフィールドを返す。  
 - table  
@@ -32,23 +34,34 @@ SHOW INDEX構文は、テーブル名に対応したINDEXの情報のフィー�
 
 ### インデックスの作成  
 - テーブルを作成する時にINDEXを作成  
-`CTEATE FROM テーブル名(カラム名 型,INDEX(カラム名))`  
+```SQL
+CTEATE FROM テーブル名(カラム名 型,INDEX(カラム名))
+```  
 - 既存のテーブルのINDEXを作成  
-`CREATE INDEX インデックス名 ON テーブル名(カラム名)` 
+```SQL
+CREATE INDEX インデックス名 ON テーブル名(カラム名)
+``` 
 カラム名の後にはソートを指定できる。  
 ### インデックスの削除  
 - DROP INDEX構文を使用する。  
-`DROP INDEX インデックス名 ON テーブル名`
+```SQL
+DROP INDEX インデックス名 ON テーブル名
+```
 
 ### 複合インデックスの作成
 - 複合インデックスとは、1つのテーブルの複数のカラムにINDEXを作成することである。 絞込みの際に複数の列をキーとして抽出する場合に有効である。
-`CREATE INDEX インデックス名 ON テーブル名(カラム名,カラム名)`  
+
+```SQL
+CREATE INDEX インデックス名 ON テーブル名(カラム名,カラム名)
+```
 
 ### ユニークインデックスについて　　
 - ユニークインデックスとは、テーブルのレコード内に重複をさせないインデックスである。　　
 - 主キーと違い、ユニークインデックスは複数のカラムにつけることができる。  
 
-`CREATE UNIQUE INDEX インデックス名 ON テーブル名(カラム名1,カラム名2)`
+```SQL
+CREATE UNIQUE INDEX インデックス名 ON テーブル名(カラム名1,カラム名2)
+```
 
 ### インデックスが利用されているかの調査(クエリの実行計画の調査)  
 - EXPLAINコマンドを使用する。  
@@ -56,7 +69,9 @@ SHOW INDEX構文は、テーブル名に対応したINDEXの情報のフィー�
 - MySQL5.6.3からはSELECT文以外のDELETE、INSERT、REPLACE、UPDATEで使用可能である。
   
   
-`EXPLAIN SELECT * FROM film WHERE title ='WORST BANGER';`  
+```SQL
+EXPLAIN SELECT * FROM film WHERE title ='WORST BANGER';
+```
 
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:------------:|
@@ -91,10 +106,12 @@ refはユニークでないINDEXを使って検索したという意味である
 その他の追加情報。  
 Using index conditionはクエリがINDEXだけでデータを抽出できたという意味である。  
 ### サブクエリにより複数行のテーブル情報が返ってくる例  
-`EXPLAIN SELECT film.title,  
+```SQL
+EXPLAIN SELECT film.title,  
 	(SELECT name FROM language WHERE language_id = film.language_id)
 FROM film  
-WHERE film_id < 100;`  
+WHERE film_id < 100;
+```  
 
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
@@ -105,7 +122,9 @@ WHERE film_id < 100;`
 - select_typeがDEPENDENT SUBQUERYとなっている。これは依存性のあるサブクエリを1度だけ呼び出したという意味である。
 
 ### インデックスでの検索が効いていないパターンの例   
-`EXPLAIN SELECT * FROM film;`  
+```SQL
+EXPLAIN SELECT * FROM film;
+```
 
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
@@ -114,7 +133,9 @@ WHERE film_id < 100;`
 - typeがALLとなっており、テーブル全てを読み込んでいるためインデックスが利用されていないことを示している。  
 
 ### インデックスでの検索ができていない条件つきのクエリ  
-`EXPLAIN SELECT * FROM inventory WHERE film_id < 500; `  
+```SQL
+IN SELECT * FROM inventory WHERE film_id < 500; 
+```
 
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
@@ -123,7 +144,9 @@ WHERE film_id < 100;`
 - 複合インデックスとして登録されたインデックスを使用する際には、(カラム1,カラム2)で登録されているものならば、カラム1からの条件検索か、カラム1、カラム2と条件を順番に絞り込んだクエリでないとインデックスは機能しない。  そのため、カラム2のみの絞込みではインデックスは利用されない。
 
 ### インデックス全体を読み込んでいる例
-`EXPLAIN SELECT title FROM film;`  
+```SQL
+EXPLAIN SELECT title FROM film;
+```
 
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
@@ -132,18 +155,22 @@ WHERE film_id < 100;`
 - typeがindexとなっており、インデックス全体を読み込んでいるため処理が遅い。  
 
 ### インデックスでの検索において効率の良い例  
-`EXPLAIN SELECT * FROM film WHERE film_id < 100 AND title = 'A%';`  
+```SQL
+EXPLAIN SELECT * FROM film WHERE film_id < 100 AND title = 'A%';
+```  
 
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
 | 1  |  SIMPLE       | film  | range |PRIMARY,idx_title    | PRIMARY | 2         | null         | 98       |   Using Where   |  
 
-- Cardinalityが高い主キーとINDEXが作成されているCardinalityが高いfilmのタイトルから抽出した結果をマージしているため、INDEXを利用した検索として効率が良い。
+- Cardinalityが高い主キーとINDEXが作成されているCardinalityが高いfilmのタイトルから抽出した結果を出力していて、INDEXを利用した検索として効率が良い。
 
 
 ### 複合インデックスの利用例
 
-`EXPLAIN SELECT * FROM inventory WHERE store_id = 1 AND film_id < 500; `
+```SQL
+EXPLAIN SELECT * FROM inventory WHERE store_id = 1 AND film_id < 500; 
+```
 
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:------------:|
