@@ -113,9 +113,6 @@ WHERE first_name LIKE 'A%';
 | 1  |  SIMPLE       | customer  | ALL   |null          | null         | null         | null         | 671          | Using where            |
 
 - typeがALLとなっており、テーブル全てを読み込んでいるためインデックスが利用されていないことを示している。  
-### インデックスでの検索ができていない条件つきのクエリ  
-
-  
 ### インデックスでの検索において効率の良い例  
 ```SQL
 EXPLAIN SELECT * FROM film WHERE film_id < 100 AND title = 'A%';
