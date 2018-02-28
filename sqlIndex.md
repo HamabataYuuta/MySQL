@@ -105,44 +105,6 @@ refはユニークでないINDEXを使って検索したという意味である
 - extra  
 その他の追加情報。  
 Using index conditionはクエリがINDEXだけでデータを抽出できたという意味である。  
-### サブクエリにより複数行のテーブル情報が返ってくる例  
-```SQL
-EXPLAIN SELECT film.title,  
-	(SELECT name FROM language WHERE language_id = film.language_id)
-FROM film  
-WHERE film_id < 100;
-```  
-
-| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
-|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
-| 1  | PRIMARY      | film  | range   |PRYMARY       | PRYMARY         |   2       | null         | 98      |     Using where       |
-| 2  | DEPENDENT SUBQUERY  | language  | eq_ref   | PRYMARY    | PRYMARY    |   1      | astrskdb.film.language_id | 1     |          |
-
-##### サブクエリとして呼び出したlanguageテーブル
-- select_typeがDEPENDENT SUBQUERYとなっている。これは依存性のあるサブクエリを1度だけ呼び出したという意味である。
-
-### インデックスでの検索が効いていないパターンの例   
-```SQL
-EXPLAIN SELECT * FROM film;
-```
-
-| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
-|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
-| 1  |  SIMPLE       | film  | ALL   |null          | null         | null         | null         | 953          |             |
-
-- typeがALLとなっており、テーブル全てを読み込んでいるためインデックスが利用されていないことを示している。  
-
-### インデックスでの検索ができていない条件つきのクエリ  
-```SQL
-IN SELECT * FROM inventory WHERE film_id < 500; 
-```
-
-| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
-|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
-| 1  |  SIMPLE       | inventory  | ALL   |   idx_fk_film_id      | null         | null         | null         | 5007          |          Using where   |
-
-- 複合インデックスとして登録されたインデックスを使用する際には、(カラム1,カラム2)で登録されているものならば、カラム1からの条件検索か、カラム1、カラム2と条件を順番に絞り込んだクエリでないとインデックスは機能しない。  そのため、カラム2のみの絞込みではインデックスは利用されない。
-
 ### インデックス全体を読み込んでいる例
 ```SQL
 EXPLAIN SELECT title FROM film;
@@ -153,6 +115,36 @@ EXPLAIN SELECT title FROM film;
 | 1  |  SIMPLE       | film  | index |null          | idx_title| 767         | null         | 953          |   Using index          |  
 
 - typeがindexとなっており、インデックス全体を読み込んでいるため処理が遅い。  
+### インデックスでの検索が効いていないパターンの例   
+```SQL
+EXPLAIN SELECT * FROM film;
+```
+
+| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
+| 1  |  SIMPLE       | film  | ALL   |null          | null         | null         | null         | 953          |             |
+
+- typeがALLとなっており、テーブル全てを読み込んでいるためインデックスが利用されていないことを示している。  
+### インデックスでの検索ができていない条件つきのクエリ  
+```SQL
+IN SELECT * FROM inventory WHERE film_id < 500; 
+```
+
+| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
+| 1  |  SIMPLE       | inventory  | ALL   |   idx_fk_film_id      | null         | null         | null         | 5007          |          Using where   |
+
+- 複合インデックスとして登録されたインデックスを使用する際には、(カラム1,カラム2)で登録されているものならば、カラム1からの条件検索か、カラム1、カラム2と条件を順番に絞り込んだクエリでないとインデックスは機能しない。  そのため、カラム2のみの絞込みではインデックスは利用されない。  
+### インデックスでの検索ができていない条件つきのクエリ  
+```SQL
+IN SELECT * FROM inventory WHERE film_id < 500; 
+```
+
+| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
+| 1  |  SIMPLE       | inventory  | ALL   |   idx_fk_film_id      | null         | null         | null         | 5007          |          Using where   |
+
+- 複合インデックスとして登録されたインデックスを使用する際には、(カラム1,カラム2)で登録されているものならば、カラム1からの条件検索か、カラム1、カラム2と条件を順番に絞り込んだクエリでないとインデックスは機能しない。  そのため、カラム2のみの絞込みではインデックスは利用されない。
 
 ### インデックスでの検索において効率の良い例  
 ```SQL
@@ -177,6 +169,21 @@ EXPLAIN SELECT * FROM inventory WHERE store_id = 1 AND film_id < 500;
 | 1  |  SIMPLE       | inventory  | ref   | idx_fk_film_id,idx_store_id_film_id    | idex_store_id_film_id  |  1  | const        | 1145            |Using index condition
 
 - 複合インデックスになっているstore_idとfilm_idを使い絞込みをかけている。  
+### サブクエリにより複数行のテーブル情報が返ってくる例  
+```SQL
+EXPLAIN SELECT film.title,  
+	(SELECT name FROM language WHERE language_id = film.language_id)
+FROM film  
+WHERE film_id < 100;
+```  
+
+| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
+| 1  | PRIMARY      | film  | range   |PRYMARY       | PRYMARY         |   2       | null         | 98      |     Using where       |
+| 2  | DEPENDENT SUBQUERY  | language  | eq_ref   | PRYMARY    | PRYMARY    |   1      | astrskdb.film.language_id | 1     |          |
+
+##### サブクエリとして呼び出したlanguageテーブル
+- select_typeがDEPENDENT SUBQUERYとなっている。これは依存性のあるサブクエリを1度だけ呼び出したという意味である。
 
 ### 処理が遅いクエリ  
 - Cardinalityが高いカラムに対してインデックスを貼り付けてないときに、そのカラムを集計する(特に、order byで並び替えをする)と、処理は遅くなる。  
