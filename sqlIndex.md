@@ -224,7 +224,7 @@ SHOW INDEX FROM film_actor;
 | film_actor | 0 | PRIMARY | 2 | film_id | A | 5131 | null | null | | BTREE | | | 
 | film_actor | 1 | idx_fk_film_id | 1 | film_id | A | 5131 | null | null | | BTREE | | | 
 
-- 2行目のカラム名がfilm_idのSeq_in_indexを確認すると、インデックスのフィールド番号が2となっている。これにより、actor_idとfilm_idは結合インデックスであるとわかる。インデックスによる検索はactor_idを元にしないとfilm_idが分からないということなので、film_idを優先するとactor_idはインデックスからは分からない。このため、film_idを優先したクエリはフルテーブルスキャンになっている。
+- 2行目のカラム名がfilm_idのSeq_in_indexを確認すると、インデックスのフィールド番号が2となっている。これにより、actor_idとfilm_idは複合インデックスであるとわかる。インデックスによる検索はactor_idを元にしないとfilm_idが分からないということなので、film_idを優先するとactor_idはインデックスからは分からない。このため、film_idを優先したクエリはフルテーブルスキャンになっている。
 
 ### 処理が遅いクエリ  
 - Cardinalityが高いカラムに対してインデックスを貼り付けてないときに、そのカラムを集計する(特に、order byで並び替えをする)と、処理は遅くなる。  
