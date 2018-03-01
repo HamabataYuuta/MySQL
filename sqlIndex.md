@@ -104,16 +104,17 @@ EXPLAIN SELECT title FROM film;
 - typeがindexとなっており、インデックス全体を読み込んでいるため処理が遅い。  
 ### インデックスでの検索が効いていないパターンの例   
 ```SQL
-EXPLAIN SELECT first_name,last_name
-FROM customer
-WHERE first_name LIKE 'A%';
+EXPLAIN SELECT
+film_id
+FROM film
+WHERE film_id -1 = 500;
 ```
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
-| 1  |  SIMPLE       | customer  | ALL   |null          | null         | null         | null         | 671          | Using where            |
+| 1  |  SIMPLE       | film  | index   |null          | idx_fk_language_id     | 1     | null         | 978        | Using where;Using index           |
 
-- typeがALLとなっており、テーブル全てを読み込んでいるためインデックスが利用されていないことを示している。  
-### インデックスでの検索において効率の良い例  
+- indexを使ったカラムに対しての計算式を左辺に記述してしまうとフルインデックススキャンになる。計算式は右辺に書く。
+### インデックスでの検索において効率の良い例  
 ```SQL
 EXPLAIN SELECT * FROM film WHERE film_id < 100 AND title = 'A%';
 ```  
