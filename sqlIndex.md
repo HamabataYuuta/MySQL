@@ -153,7 +153,7 @@ WHERE film_id -1 = 500;
 - indexを使ったカラムに対しての計算式を左辺に記述してしまうとフルインデックススキャンになる。計算式は右辺に書く。
 ### インデックスでの検索において効率の良い例  
 ```SQL
-EXPLAIN SELECT * FROM film WHERE film_id < 100 AND title = 'A%';
+EXPLAIN SELECT * FROM film WHERE film_id < 100 AND title LIKE 'A%';
 ```  
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
