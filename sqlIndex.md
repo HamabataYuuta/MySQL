@@ -198,8 +198,36 @@ WHERE film.film_id < 100;
 | 2  | SIMPLE  | language | ALL | PRYMARY    |   NULL     | NULL | NULL  | 6 | Using where; Using join buffer(flat,BNL join)|
 
 - サブクエリを使用した例と同じ検索結果になるクエリを使用した。languageテーブルがフルテーブルスキャンとなった。
+### 2つSQL文の実行計画の違いについて
+- 二つのSQLで結果がことなるのはなぜか。
+```SQL
+EXPLAIN SELECT * FROM film_actor ORDER BY actor_id, film_id;
+```
+| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
+| 1  | SIMPLE  | film_actor  | index   | NULL | PRYMARY |  4 | NULL | 5920   |   |
+
+```SQL
+EXPLAIN SELECT * FROM film_actor ORDER BY film_id, actor_id;
+```
+| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
+| 1  | SIMPLE  | film_actor  | ALL  | NULL | NULL |  NULL | NULL | 5131   | Using filesort
+
+- インデックス情報を確認する。
+```SQL
+SHOW INDEX FROM film_actor
+```
+| table | Non_unique | Key_name | Seq_in_index | Columun_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment| Index_comment |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|:-----------:|:-----------:|:-----------:|
+| film_actor | 0 | PRIMARY | 1 | actor_id | A | 5131 | null | null | | BTREE | | | 
+| film_actor | 0 | PRIMARY | 2 | film_id | A | 5131 | null | null | | BTREE | | | 
+| film_actor | 1 | idx_fk_film_id | 1 | film_id | A | 5131 | null | null | | BTREE | | | 
+
+- 2行目のカラム名がfilm_idのSeq_in_indexを確認すると、インデックスのフィールド番号が2となっている。これにより、actor_idとfilm_idは結合インデックスであるとわかる。インデックスによる検索はactor_idを元にしないとfilm_idが分からないということなので、film_idを優先するとactor_idはインデックスからは分からない。このため、film_idを優先したクエリはフルテーブルスキャンになっている。
 
 ### 処理が遅いクエリ  
 - Cardinalityが高いカラムに対してインデックスを貼り付けてないときに、そのカラムを集計する(特に、order byで並び替えをする)と、処理は遅くなる。  
 - 複合インデックスを使用しているが、絞込みにカラム名を片方しか入れていない場合には、インデックスがフルスキャンされるため、処理は遅くなる。  
 - 条件検索で、インデックスを張ったカラムに直接に関数や計算式を指定するとインデックスはフルスキャンされてしまう。
+
