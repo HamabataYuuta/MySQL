@@ -216,7 +216,7 @@ EXPLAIN SELECT * FROM film_actor ORDER BY film_id, actor_id;
 
 - インデックス情報を確認する。
 ```SQL
-SHOW INDEX FROM film_actor
+SHOW INDEX FROM film_actor;
 ```
 | table | Non_unique | Key_name | Seq_in_index | Columun_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment| Index_comment |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|:-----------:|:-----------:|:-----------:|
