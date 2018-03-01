@@ -12,8 +12,20 @@
 ```SQL
 SHOW INDEX FROM テーブル名
 ```  
-SHOW INDEX構文は、テーブル名に対応したINDEXの情報のフィールドを返す。  
-- table  
+- filmテーブルのインデックス情報を確認する。
+```SQL
+SHOW INDEX FROM film;
+```
+
+| table | Non_unique | Key_name | Seq_in_index | Columun_name | Collation | Cardinality | Sub_part | Packed | Null | Index_type | Comment| Index_comment |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|:-----------:|:-----------:|:-----------:|
+| film | 0 | PRIMARY | 1 | film_id | A | 879 | null | null | | BTREE | | | 
+| film | 1 | idx_title | 1 | title | A | 879 | null | null | | BTREE | | | 
+| film | 1 | idx_fk_language_id | 1 | language_id | A | 1 | null | null | | BTREE | | | 
+| film | 1 | idx_fk_original_language_id | 1 | original_language_id | A | 1 | null | null | YES | BTREE | | | 
+
+SHOW INDEX構文は、テーブル名に対応したINDEXの情報のフィールドを返す。注目すべき点は以下である。 
+- table  
 テーブル名。  
 - Non_unique  
 インデックス内のレコードが重複した値を含むことができるかできないかを表す。  
@@ -92,8 +104,33 @@ refはユニークでないINDEXを使って検索したという意味である
 テーブルから調査された行数。  
 - extra  
 その他の追加情報。  
-Using index conditionはクエリがINDEXだけでデータを抽出できたという意味である。  
-### インデックス全体を読み込んでいる例
+Using index conditionはクエリがINDEXだけでデータを抽出できたという意味である。  
+### インデックス検索を使用した例
+```SQL
+EXPLAIN SELECT * 
+FROM address
+WHERE city_id = 10; 
+```
+| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
+| 1  |  SIMPLE       | address  | ref | idx_fk_city_id   | idx_fk_city_id| 2        | const        | 1          |           |  
+
+- INDEXを使用しているaddressのcity_idカラムに対して等価検索を行っている。インデックスを使って等価検索を行った場合、typeはrefと表示される。
+ 
+### インデックスでの検索が効いていないパターンの例
+#### 1.INDEXが張られていないカラムを条件にして検索する
+```SQL
+EXPLAIN SELECT address_id
+FROM address
+WHERE address2 IS NULL
+```
+
+| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
+| 1  |  SIMPLE       | address  | ALL |null          | null |          | null         | 628         |   Using where       |  
+
+- INDEXが張られていないカラムで検索条件を記述することはINDEXでの検索にはならないため、typeがALLとなる。
+#### 2.インデックス全体を読み込んでいる
 ```SQL
 EXPLAIN SELECT title FROM film;
 ```
@@ -101,8 +138,8 @@ EXPLAIN SELECT title FROM film;
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
 | 1  |  SIMPLE       | film  | index |null          | idx_title| 767         | null         | 953          |   Using index          |  
 
-- typeがindexとなっており、インデックス全体を読み込んでいるため処理が遅い。  
-### インデックスでの検索が効いていないパターンの例   
+- typeがindexとなっており、インデックス全体を読み込んでいるため処理が遅い。 
+#### 3.INDEXが張られているカラムの左辺で計算をする
 ```SQL
 EXPLAIN SELECT
 film_id
@@ -132,7 +169,8 @@ EXPLAIN SELECT * FROM inventory WHERE store_id = 1 AND film_id < 500;
 | 1  |  SIMPLE       | inventory  | ref   | idx_fk_film_id,idx_store_id_film_id    | idex_store_id_film_id  |  1  | const        | 1145            |Using index condition
 
 - 複合インデックスになっているstore_idとfilm_idを使い絞込みをかけている。  
-### サブクエリにより複数行のテーブル情報が返ってくる例  
+### 複数行のテーブル情報が返ってくる例  
+#### 1.サブクエリを使用した例
 ```SQL
 EXPLAIN SELECT film.title,  
 	(SELECT name FROM language WHERE language_id = film.language_id)
@@ -141,12 +179,27 @@ WHERE film_id < 100;
 ```  
 | id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
 |:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
-| 1  | PRIMARY      | film  | range   |PRYMARY       | PRYMARY         |   2       | null         | 98      |     Using where       |
+| 1  | PRIMARY      | film  | range   |PRYMARY       | PRYMARY         |   2       | NULL        | 98      |     Using where       |
 | 2  | DEPENDENT SUBQUERY  | language  | eq_ref   | PRYMARY    | PRYMARY    |   1      | astrskdb.film.language_id | 1     |          |
 
-##### サブクエリとして呼び出したlanguageテーブル
 - select_typeがDEPENDENT SUBQUERYとなっている。これは依存性のあるサブクエリを1度だけ呼び出したという意味である。
+#### 2.JOINを使用した例
+```SQL
+EXPLAIN SELECT 
+	film.title, language.name 
+FROM film 
+INNER JOIN language
+ON language.language_id = film.language_id
+WHERE film.film_id < 100;
+```
+| id | select_type   | table |  type | possible_keys| key          | key_len      | ref          | rows         | extra       |
+|:--:|:------------: |:-----:|:-----:|:------------:|:------------:|:------------:|:------------:|:------------:|:-----------:|
+| 1  | SIMPLE  | film  | range   |PRYMARY,idx_fk_languade_id | PRYMARY |  2 | NULL       | 98      |     Using where       |
+| 2  | SIMPLE  | language | ALL | PRYMARY    |   NULL     | NULL | NULL  | 6 | Using where; Using join buffer(flat,BNL join)|
+
+- languageテーブルがフルテーブルスキャンとなった。
 
 ### 処理が遅いクエリ  
 - Cardinalityが高いカラムに対してインデックスを貼り付けてないときに、そのカラムを集計する(特に、order byで並び替えをする)と、処理は遅くなる。  
 - 複合インデックスを使用しているが、絞込みにカラム名を片方しか入れていない場合には、インデックスがフルスキャンされるため、処理は遅くなる。  
+- 条件検索で、インデックスを張ったカラムに直接に関数や計算式を指定するとインデックスはフルスキャンされてしまう。
