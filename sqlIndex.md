@@ -197,7 +197,7 @@ WHERE film.film_id < 100;
 | 1  | SIMPLE  | film  | range   |PRYMARY,idx_fk_languade_id | PRYMARY |  2 | NULL       | 98      |     Using where       |
 | 2  | SIMPLE  | language | ALL | PRYMARY    |   NULL     | NULL | NULL  | 6 | Using where; Using join buffer(flat,BNL join)|
 
-- languageテーブルがフルテーブルスキャンとなった。
+- サブクエリを使用した例と同じ検索結果になるクエリを使用した。languageテーブルがフルテーブルスキャンとなった。
 
 ### 処理が遅いクエリ  
 - Cardinalityが高いカラムに対してインデックスを貼り付けてないときに、そのカラムを集計する(特に、order byで並び替えをする)と、処理は遅くなる。  
