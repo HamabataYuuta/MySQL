@@ -198,7 +198,7 @@ WHERE film.film_id < 100;
 | 2  | SIMPLE  | language | ALL | PRYMARY    |   NULL     | NULL | NULL  | 6 | Using where; Using join buffer(flat,BNL join)|
 
 - サブクエリを使用した例と同じ検索結果になるクエリを使用した。languageテーブルがフルテーブルスキャンとなった。
-### 2つSQL文の実行計画の違いについて
+### 2つのSQL文の実行計画の違いについて
 - 二つのSQLで結果がことなるのはなぜか。
 ```SQL
 EXPLAIN SELECT * FROM film_actor ORDER BY actor_id, film_id;
